@@ -64,6 +64,15 @@ export function todayIso(): string {
   return toIsoDate(new Date());
 }
 
+const UZ_MONTHS_SHORT = ["Yan", "Fev", "Mar", "Apr", "May", "Iyun", "Iyul", "Avg", "Sen", "Okt", "Noy", "Dek"] as const;
+
+/** "2026-11-23T16:06" → "23 Noy, 16:06" */
+export function formatShortDateTime(isoDateTime: string): string {
+  const [date = "", time = ""] = isoDateTime.split("T");
+  const d = parseIsoDate(date);
+  return `${d.getDate()} ${UZ_MONTHS_SHORT[d.getMonth()]}, ${time.slice(0, 5)}`;
+}
+
 /** "2026-11-21" → "21.11" */
 export function formatDayMonth(iso: string): string {
   const date = parseIsoDate(iso);

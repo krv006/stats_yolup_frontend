@@ -16,6 +16,13 @@ const VARIANTS = {
     on: "border-line bg-surface shadow-xs",
     off: "border-transparent hover:bg-subtle",
   },
+  /** Compact segmented control on a track (time ranges). */
+  pill: {
+    root: "inline-flex gap-0.5 rounded-md bg-track p-0.5",
+    item: "h-[19px] rounded-[5px] px-1 text-caption",
+    on: "bg-surface font-medium text-ink shadow-xs",
+    off: "text-ink hover:bg-surface/60",
+  },
   /** Content-width chips; the selected one is brand-tinted. */
   brand: {
     root: "flex flex-wrap gap-1",

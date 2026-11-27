@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV_ITEMS, findNavItem } from "@/shared/config/navigation";
+import { NAV_ITEMS, SYSTEM_HEALTH_HREF, findNavItem } from "@/shared/config/navigation";
 import { cn } from "@/shared/lib/cn";
 
 /** Reads the URL; render inside <Suspense> (see SidebarFallback). */
@@ -52,10 +52,13 @@ function SidebarView({ pathname }: { pathname: string | null }) {
         })}
       </nav>
 
-      <div className="mt-auto flex items-center gap-2 px-1.5 text-caption text-ink-tertiary">
+      <Link
+        href={SYSTEM_HEALTH_HREF}
+        className="mt-auto flex items-center gap-2 self-start rounded-xs px-1.5 text-caption text-ink-tertiary hover:text-ink"
+      >
         <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
         Tizim barqaror
-      </div>
+      </Link>
     </aside>
   );
 }
