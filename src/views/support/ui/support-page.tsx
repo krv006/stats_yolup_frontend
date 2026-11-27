@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useSupportTickets, type SupportTicket, type TicketStatus } from "@/entities/support";
 import type { DemoScenario } from "@/shared/api/demo-scenario";
-import { cn } from "@/shared/lib/cn";
 import { LoadErrorPanel, LoadingPanel, StatePanel } from "@/shared/ui/state-panel";
+import { TabSwitcher } from "@/shared/ui/tab-switcher";
 import { Conversation } from "./conversation";
 import { TicketList } from "./ticket-list";
 
@@ -79,26 +79,13 @@ export function SupportPage({ scenario }: { scenario: DemoScenario }) {
     <div className="-mt-px flex flex-1 flex-col gap-[18px]">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-display text-ink-strong">Murojaatlar (Qo‘llab-quvvatlash)</h1>
-        <div role="tablist" aria-label="Murojaat holati" className="flex gap-[3px] rounded-lg bg-track p-1">
-          {TABS.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              role="tab"
-              aria-selected={t.value === tab}
-              onClick={() => switchTab(t.value)}
-              className={cn(
-                "flex h-[29px] items-center gap-2 rounded-md px-3 text-body transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/40",
-                t.value === tab ? "bg-surface font-semibold text-ink shadow-xs" : "text-ink hover:text-ink-strong"
-              )}
-            >
-              {t.label}
-              <span className="text-caption font-normal">
-                {t.value === "all" ? all.length : all.filter((x) => x.status === t.value).length}
-              </span>
-            </button>
-          ))}
-        </div>
+        <TabSwitcher
+          tabs={TABS.map((t) => ({ ...t, count: t.value === "all" ? all.length : all.filter((x) => x.status === t.value).length }))}
+          value={tab}
+          onChange={switchTab}
+          label="Murojaat holati"
+          className="p-1"
+        />
       </div>
 
       {body()}

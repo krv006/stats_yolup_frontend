@@ -27,7 +27,7 @@ export function Conversation({ ticket }: { ticket: SupportTicket }) {
         <InitialsAvatar name={requester.name} size="lg" className="size-[38px]" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="truncate text-[16px] leading-5 font-semibold text-ink-strong">{ticket.subject}</h2>
+            <h2 className="truncate text-[16px] leading-5 font-semibold text-ink">{ticket.subject}</h2>
             <TicketStatusLabel status={ticket.status} />
           </div>
           <p className="mt-0.5 truncate text-caption text-ink">
@@ -48,14 +48,14 @@ export function Conversation({ ticket }: { ticket: SupportTicket }) {
               className={cn("w-full rounded-xl px-4 py-3", fromSupport ? "max-w-125 self-end bg-action-subtle" : "max-w-130 self-start")}
             >
               <div className="flex items-center justify-between gap-4 text-caption">
-                <span className="font-semibold text-ink-strong">
+                <span className="font-semibold text-ink">
                   {fromSupport ? SUPPORT_NAME : `${requester.name} (${role})`}
                 </span>
                 <time dateTime={m.sentAt} className="text-ink">
                   {formatMessageStamp(m.sentAt)}
                 </time>
               </div>
-              <p className="mt-1.5 text-body leading-[19px] whitespace-pre-line text-ink-strong">{m.text}</p>
+              <p className="mt-1.5 text-body leading-[19px] whitespace-pre-line text-ink">{m.text}</p>
             </li>
           );
         })}

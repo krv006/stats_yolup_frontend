@@ -5,9 +5,9 @@ import { useState } from "react";
 import { NewDemoDialog } from "@/features/demo-create";
 import { usePlansOverview, useTeacherRoster } from "@/entities/plan";
 import type { DemoScenario } from "@/shared/api/demo-scenario";
-import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
 import { LoadErrorPanel, LoadingPanel, StatePanel } from "@/shared/ui/state-panel";
+import { TabSwitcher, type TabOption } from "@/shared/ui/tab-switcher";
 import { ApplicantsPanel } from "./applicants-panel";
 import { RosterTable } from "./roster-table";
 import { TeacherStatsDialog } from "./teacher-stats-dialog";
@@ -26,7 +26,7 @@ export function TeachersPage({ scenario }: { scenario: DemoScenario }) {
   const person =
     teachers.find((t) => t.id === analyzing) ?? applicants.find((a) => a.id === analyzing);
 
-  const tabs: Array<{ value: Tab; label: string; count: number }> = [
+  const tabs: Array<TabOption<Tab>> = [
     { value: "all", label: "Barcha o‘qituvchilar", count: teachers.length },
     { value: "pending", label: "Tasdiqlanishi kerak", count: applicants.length },
   ];
@@ -71,24 +71,7 @@ export function TeachersPage({ scenario }: { scenario: DemoScenario }) {
     <div className="-mt-px flex flex-1 flex-col gap-[18px]">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-display text-ink-strong">O‘qituvchilar</h1>
-        <div role="tablist" aria-label="Ko‘rinish" className="flex gap-[3px] rounded-lg bg-track p-[5px]">
-          {tabs.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              role="tab"
-              aria-selected={t.value === tab}
-              onClick={() => setTab(t.value)}
-              className={cn(
-                "flex h-[29px] items-center gap-2 rounded-md px-3 text-body transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/40",
-                t.value === tab ? "bg-surface font-semibold text-ink shadow-xs" : "text-ink hover:text-ink-strong"
-              )}
-            >
-              {t.label}
-              <span className="text-caption font-normal">{t.count}</span>
-            </button>
-          ))}
-        </div>
+        <TabSwitcher tabs={tabs} value={tab} onChange={setTab} label="Ko‘rinish" />
       </div>
 
       {body()}

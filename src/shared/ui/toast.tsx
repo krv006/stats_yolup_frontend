@@ -3,7 +3,9 @@
 import { create } from "zustand";
 import { cn } from "@/shared/lib/cn";
 
-type ToastTone = "success" | "error";
+type ToastTone = "success" | "warning" | "error";
+
+const TONE_DOT: Record<ToastTone, string> = { success: "bg-success", warning: "bg-warning", error: "bg-danger" };
 
 interface Toast {
   id: number;
@@ -36,6 +38,7 @@ const useToastStore = create<ToastStore>((set, get) => ({
 /** Imperative API — callable from mutation callbacks. */
 export const toast = {
   success: (message: string) => useToastStore.getState().push(message, "success"),
+  warning: (message: string) => useToastStore.getState().push(message, "warning"),
   error: (message: string) => useToastStore.getState().push(message, "error"),
 };
 
@@ -57,7 +60,7 @@ export function Toaster() {
           className="pointer-events-auto flex items-center gap-2.5 rounded-lg bg-inverse px-4 py-2.5 text-body font-medium text-ink-inverse shadow-lg animate-in fade-in slide-in-from-bottom-2"
         >
           <span
-            className={cn("size-2 shrink-0 rounded-full", t.tone === "success" ? "bg-success" : "bg-danger")}
+            className={cn("size-2 shrink-0 rounded-full", TONE_DOT[t.tone])}
             aria-hidden="true"
           />
           {t.message}

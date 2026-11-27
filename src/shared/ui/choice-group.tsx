@@ -30,6 +30,13 @@ const VARIANTS = {
     on: "border-action bg-action-subtle font-medium text-ink",
     off: "border-transparent text-ink hover:bg-subtle",
   },
+  /** Two-line option cards (title + hint); the selected one is brand-tinted. */
+  card: {
+    root: "grid auto-cols-fr grid-flow-col gap-2.5",
+    item: "flex h-[58px] flex-col items-start justify-center rounded-lg border-[1.5px] px-[13px] text-left",
+    on: "border-action bg-action-subtle",
+    off: "border-transparent hover:bg-subtle",
+  },
 } as const;
 
 /** Single-choice radio group rendered as buttons. */

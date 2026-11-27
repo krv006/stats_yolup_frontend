@@ -54,11 +54,11 @@ function TicketCard({ ticket, selected, onSelect }: { ticket: SupportTicket; sel
     >
       <span className="flex items-center gap-2">
         <InitialsAvatar name={requester.name} className="size-7 bg-elevated text-caption" />
-        <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink-strong">{ticket.subject}</span>
+        <span className="min-w-0 flex-1 truncate text-body font-semibold text-ink">{ticket.subject}</span>
         <TicketStatusLabel status={ticket.status} />
       </span>
       <span className="mt-1.5 truncate text-caption text-ink">{ticket.preview}</span>
-      <span className="mt-[5px] flex items-center gap-3 text-caption text-ink-strong">
+      <span className="mt-[5px] flex items-center gap-3 text-caption text-ink">
         <span className="min-w-0 flex-1 truncate">
           {requester.name} (@{requester.username})<span className="mx-2">|</span>
           {REQUESTER_ROLE_LABEL[requester.role]}

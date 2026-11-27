@@ -17,18 +17,25 @@ export const POPUP_CLASS = cn(
 export const Dialog = Primitive.Root;
 export const DialogClose = Primitive.Close;
 
-export function DialogContent({ className, children, ...props }: ComponentProps<typeof Primitive.Popup>) {
+export function DialogContent({
+  className,
+  children,
+  showClose = true,
+  ...props
+}: ComponentProps<typeof Primitive.Popup> & { showClose?: boolean }) {
   return (
     <Primitive.Portal>
       <Primitive.Backdrop className={BACKDROP_CLASS} />
       <Primitive.Popup className={cn(POPUP_CLASS, "max-w-110", className)} {...props}>
         {children}
+        {showClose ? (
         <Primitive.Close
           aria-label="Yopish"
           className="absolute top-[22px] right-6 grid size-[30px] place-items-center rounded-md bg-subtle text-ink-secondary hover:bg-track hover:text-ink"
         >
           <X className="size-3.5" strokeWidth={2} />
         </Primitive.Close>
+        ) : null}
       </Primitive.Popup>
     </Primitive.Portal>
   );
