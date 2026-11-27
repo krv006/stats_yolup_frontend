@@ -7,9 +7,7 @@ import { usePlansOverview, useTeacherRoster } from "@/entities/plan";
 import type { DemoScenario } from "@/shared/api/demo-scenario";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
-import { Panel } from "@/shared/ui/panel";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { LoadErrorPanel, StatePanel } from "@/shared/ui/state-panel";
+import { LoadErrorPanel, LoadingPanel, StatePanel } from "@/shared/ui/state-panel";
 import { ApplicantsPanel } from "./applicants-panel";
 import { RosterTable } from "./roster-table";
 import { TeacherStatsDialog } from "./teacher-stats-dialog";
@@ -37,7 +35,7 @@ export function TeachersPage({ scenario }: { scenario: DemoScenario }) {
     if (roster.isError && !roster.data) {
       return <LoadErrorPanel title="O‘qituvchilarni yuklab bo‘lmadi" retrying={roster.isFetching} onRetry={() => void roster.refetch()} />;
     }
-    if (!roster.data) return <RosterSkeleton />;
+    if (!roster.data) return <LoadingPanel />;
     if (!teachers.length && !applicants.length) {
       return (
         <StatePanel
@@ -104,19 +102,5 @@ export function TeachersPage({ scenario }: { scenario: DemoScenario }) {
       />
       <NewDemoDialog open={demoOpen} onOpenChange={setDemoOpen} demoPlan={plans.data?.plans.find((p) => p.id === "demo")} />
     </div>
-  );
-}
-
-function RosterSkeleton() {
-  return (
-    <Panel aria-busy="true" aria-label="Yuklanmoqda" className="flex min-h-140 flex-1 flex-col justify-center gap-11 px-12">
-      {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} className="flex items-center gap-4">
-          <Skeleton className="h-4 w-65" />
-          <Skeleton className="h-4 w-45" />
-          <Skeleton className="h-4 w-55" />
-        </div>
-      ))}
-    </Panel>
   );
 }

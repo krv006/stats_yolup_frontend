@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/button";
 import { Panel } from "@/shared/ui/panel";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export function LoadErrorPanel({
   title,
@@ -66,6 +67,21 @@ export function StatePanel({
       </h2>
       <p className="mt-3 text-body text-ink-secondary">{description}</p>
       {action ? <div className="mt-3">{action}</div> : null}
+    </Panel>
+  );
+}
+
+/** Generic table-ish placeholder shown while a page's main data loads. */
+export function LoadingPanel({ className }: { className?: string }) {
+  return (
+    <Panel aria-busy="true" aria-label="Yuklanmoqda" className={cn("flex min-h-140 flex-1 flex-col justify-center gap-11 px-12", className)}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <div key={i} className="flex items-center gap-4">
+          <Skeleton className="h-4 w-65" />
+          <Skeleton className="h-4 w-45" />
+          <Skeleton className="h-4 w-55" />
+        </div>
+      ))}
     </Panel>
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTeacherRoster } from "@/entities/plan";
+import { useSupportTickets } from "@/entities/support";
 import { NAV_ITEMS, SYSTEM_HEALTH_HREF, findNavItem } from "@/shared/config/navigation";
 import { cn } from "@/shared/lib/cn";
 
@@ -16,12 +17,15 @@ export function SidebarFallback() {
   return <SidebarView pathname={null} />;
 }
 
-/** Pending teacher sign-ups drive the "O‘qituvchilar" counter. */
+/** Live counters: pending teacher sign-ups and open support tickets. */
 const TEACHERS_HREF = "/oqituvchilar";
+const SUPPORT_HREF = "/murojaatlar";
 
 function SidebarView({ pathname }: { pathname: string | null }) {
   const pending = useTeacherRoster("default").data?.applicants.length;
-  const countFor = (href: string, fallback?: number) => (href === TEACHERS_HREF ? pending : fallback);
+  const openTickets = useSupportTickets("default").data?.filter((t) => t.status === "open").length;
+  const live: Record<string, number | undefined> = { [TEACHERS_HREF]: pending, [SUPPORT_HREF]: openTickets };
+  const countFor = (href: string, fallback?: number) => (href in live ? live[href] : fallback);
 
   return (
     <aside className="sticky top-0 flex h-dvh w-(--layout-sidebar) shrink-0 flex-col border-r border-line bg-elevated px-4 pt-5 pb-5">

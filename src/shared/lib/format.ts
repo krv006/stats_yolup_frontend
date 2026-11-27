@@ -119,3 +119,24 @@ export function initials(name: string): string {
     .map((part) => part[0]!.toUpperCase())
     .join("");
 }
+
+const timeOf = (isoDateTime: string) => isoDateTime.split("T")[1]?.slice(0, 5) ?? "";
+
+/** List stamp: "14:20" today, "Kecha", otherwise "21 Noy". */
+export function formatListStamp(isoDateTime: string): string {
+  const [date = ""] = isoDateTime.split("T");
+  const ago = -daysUntil(date);
+  if (ago <= 0) return timeOf(isoDateTime);
+  if (ago === 1) return "Kecha";
+  const d = parseIsoDate(date);
+  return `${d.getDate()} ${UZ_MONTHS_SHORT[d.getMonth()]}`;
+}
+
+/** Message stamp: "Bugun, 14:20", "Kecha, 16:30", otherwise "21 Noy, 16:30". */
+export function formatMessageStamp(isoDateTime: string): string {
+  const [date = ""] = isoDateTime.split("T");
+  const ago = -daysUntil(date);
+  if (ago <= 0) return `Bugun, ${timeOf(isoDateTime)}`;
+  if (ago === 1) return `Kecha, ${timeOf(isoDateTime)}`;
+  return formatShortDateTime(isoDateTime);
+}
