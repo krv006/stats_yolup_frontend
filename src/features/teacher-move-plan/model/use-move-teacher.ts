@@ -1,23 +1,16 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { plansApi, useInvalidatePlans, type PaidPlanId } from "@/entities/plan";
+import { plansApi, priceLabel, useInvalidatePlans, type MoveTeacherInput } from "@/entities/plan";
 import { toast } from "@/shared/ui/toast";
-
-interface MoveVariables {
-  teacherId: string;
-  planId: PaidPlanId;
-  /** For the success message only. */
-  planName: string;
-}
 
 export function useMoveTeacher() {
   const invalidate = useInvalidatePlans();
   return useMutation({
-    mutationFn: ({ teacherId, planId }: MoveVariables) => plansApi.moveTeacher(teacherId, planId),
-    onSuccess: async (teacher, { planName }) => {
+    mutationFn: (input: MoveTeacherInput) => plansApi.moveTeacher(input),
+    onSuccess: async ({ teacher, plan }) => {
       await invalidate();
-      toast.success(`${teacher.name} ${planName} tarifiga o‘tkazildi`);
+      toast.success(`${teacher.name} ${plan.name} tarifga (${priceLabel(plan)}) muvaffaqiyatli o‘tkazildi`);
     },
     onError: (error) => toast.error(error.message),
   });

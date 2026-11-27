@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import { SendReminderButton } from "@/features/payment-reminder";
-import { nextPlan, type MoveRequest } from "@/features/teacher-move-plan";
-import type { AttentionItem, AttentionKind, AttentionTone, Plan } from "@/entities/plan";
+import type { MoveRequest } from "@/features/teacher-move-plan";
+import {
+  upgradeTarget,
+  type AttentionItem,
+  type AttentionKind,
+  type AttentionTone,
+  type Plan,
+} from "@/entities/plan";
 import { cn } from "@/shared/lib/cn";
 import { InitialsAvatar } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
@@ -37,7 +43,7 @@ export function AttentionPanel({
     if (item.kind === "payment") {
       return <SendReminderButton teacherId={item.teacherId} teacherName={item.teacherName} />;
     }
-    const suggested = nextPlan(item.planId);
+    const suggested = upgradeTarget(item.planId);
     if (!suggested) return null;
     const label =
       item.kind === "demo" ? "Tarifga o‘tkazish" : `${plans.find((p) => p.id === suggested)?.name ?? ""}ga oshirish`;
@@ -46,7 +52,7 @@ export function AttentionPanel({
         variant="secondary"
         size="xs"
         className="px-3"
-        onClick={() => onMove({ teacherId: item.teacherId, teacherName: item.teacherName, from: item.planId, suggested })}
+        onClick={() => onMove({ teacherId: item.teacherId, teacherName: item.teacherName, suggested })}
       >
         {label}
       </Button>

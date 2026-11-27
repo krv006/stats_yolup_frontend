@@ -1,19 +1,28 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { LogoutDialog } from "@/features/auth-logout";
 import { DEFAULT_SEARCH_PLACEHOLDER, findNavItem } from "@/shared/config/navigation";
+import { CURRENT_USER } from "@/shared/config/session";
 import { formatUzDate } from "@/shared/lib/format";
+import { NotificationsPopover } from "./notifications-popover";
 
-// TODO(auth): replace with the signed-in user once the auth API is wired.
-const CURRENT_USER = { name: "vintozer", initials: "VZ", role: "Administrator" };
-const UNREAD_NOTIFICATIONS = 6;
 
+/** Reads the URL; render inside <Suspense> (see TopbarFallback). */
 export function Topbar() {
+  return <TopbarView placeholder={findNavItem(usePathname())?.searchPlaceholder ?? DEFAULT_SEARCH_PLACEHOLDER} />;
+}
+
+/** Same topbar with the default search hint, for the prerendered shell. */
+export function TopbarFallback() {
+  return <TopbarView placeholder={DEFAULT_SEARCH_PLACEHOLDER} />;
+}
+
+function TopbarView({ placeholder }: { placeholder: string }) {
   const searchRef = useRef<HTMLInputElement>(null);
-  const placeholder = findNavItem(usePathname())?.searchPlaceholder ?? DEFAULT_SEARCH_PLACEHOLDER;
+  const headerRef = useRef<HTMLElement>(null);
 
   // ⌘K / Ctrl+K focuses the global search.
   useEffect(() => {
@@ -28,7 +37,7 @@ export function Topbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-(--layout-topbar) items-center gap-6 border-b border-line bg-surface px-8">
+    <header ref={headerRef} className="sticky top-0 z-30 flex h-(--layout-topbar) items-center gap-6 border-b border-line bg-surface px-8">
       <label className="flex h-9 w-85 items-center gap-2 rounded-md border border-line bg-surface pr-2.5 pl-3.5 focus-within:border-action focus-within:ring-3 focus-within:ring-ring/20">
         <Search className="size-3.5 shrink-0 text-ink-tertiary" aria-hidden="true" />
         <span className="sr-only">Qidiruv</span>
@@ -44,14 +53,7 @@ export function Topbar() {
       <div className="ml-auto flex items-center gap-[27px]">
         <Today />
 
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-xs text-ink-secondary outline-none hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/40"
-          aria-label={`Bildirishnomalar: ${UNREAD_NOTIFICATIONS} ta o‘qilmagan`}
-        >
-          <Bell className="size-3.5" strokeWidth={1.75} />
-          <span className="text-caption font-semibold text-ink">{UNREAD_NOTIFICATIONS}</span>
-        </button>
+        <NotificationsPopover anchorRef={headerRef} />
 
         <LogoutDialog
           trigger={

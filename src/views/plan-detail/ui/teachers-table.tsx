@@ -21,12 +21,19 @@ export function matchesQuery(teacher: PlanTeacher, query: string): boolean {
   return teacher.name.toLowerCase().includes(q) || (digits.length > 0 && teacher.phone.includes(digits));
 }
 
+const teacherHref = (t: PlanTeacher) => `/tariflar/${t.planId}/${encodeURIComponent(t.id)}`;
+
 function TeacherCell({ teacher }: { teacher: PlanTeacher }) {
   return (
     <div className="flex items-center gap-3">
       <InitialsAvatar name={teacher.name} size="lg" />
       <div className="min-w-0">
-        <p className="truncate text-[14px] leading-5 font-medium text-ink">{teacher.name}</p>
+        <Link
+          href={teacherHref(teacher)}
+          className="block truncate text-[14px] leading-5 font-medium text-ink hover:text-brand"
+        >
+          {teacher.name}
+        </Link>
         <p className="truncate text-caption text-ink">{teacher.subject}</p>
       </div>
     </div>
@@ -100,10 +107,10 @@ function StatusDot({ tone, children }: { tone: string | null; children: ReactNod
   );
 }
 
-function GroupsLink({ teacherId }: { teacherId: string }) {
+function GroupsLink({ teacher }: { teacher: PlanTeacher }) {
   return (
     <Link
-      href={`/oqituvchilar?id=${encodeURIComponent(teacherId)}`}
+      href={teacherHref(teacher)}
       className={cn(buttonVariants({ variant: "secondary", size: "xs" }), "gap-1.5")}
     >
       Guruhlar <ChevronRight className="size-3" />
@@ -167,7 +174,7 @@ export function PaidTeachersTable({ plan, teachers }: { plan: Plan; teachers: Pl
                 "—"
               )}
             </td>
-            <td className={cn(TD, "text-right")}><GroupsLink teacherId={t.id} /></td>
+            <td className={cn(TD, "text-right")}><GroupsLink teacher={t} /></td>
           </tr>
         ))}
         {teachers.length === 0 ? <EmptyRow colSpan={7} /> : null}
@@ -231,7 +238,7 @@ export function DemoTeachersTable({
                   <Button variant="secondary" size="xs" className="px-3" onClick={() => onConvert(t)}>
                     Tarifga o‘tkazish
                   </Button>
-                  <GroupsLink teacherId={t.id} />
+                  <GroupsLink teacher={t} />
                 </div>
               </td>
             </tr>

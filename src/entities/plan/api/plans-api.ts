@@ -1,150 +1,48 @@
 import type { DemoScenario } from "@/shared/api/demo-scenario";
 import { mockDelay, mockRespond } from "@/shared/api/mock";
-import { daysUntil, formatDate, isoInDays } from "@/shared/lib/format";
-import type {
-  AttentionItem,
-  NewDemoInput,
-  PaidPlanId,
-  Plan,
-  PlanId,
-  PlansOverview,
-  PlanSettingsInput,
-  PlanTeacher,
-} from "../model/types";
-import { db, type PlanRow } from "./mock-db";
+import { isoAddDays, isoAddMonths, todayIso } from "@/shared/lib/format";
+import type { MoveTeacherInput, NewDemoInput, PlanId, PlanSettingsInput } from "../model/types";
+import { db } from "./mock/db";
+import {
+  buildNotificationFeed,
+  buildOverview,
+  buildPlan,
+  buildRoster,
+  buildTeacherDetail,
+  buildTeacherStats,
+  planRow,
+  profileOf,
+  teacherRow,
+  toPlanTeacher,
+} from "./mock/derive";
 
-const PAYMENT_WARNING_DAYS = 7;
-const CAPACITY_WARNING = 0.9;
-
-function planRow(id: PlanId): PlanRow {
-  const row = db.plans.find((plan) => plan.id === id);
-  if (!row) throw new Error(`Noma’lum tarif: ${id}`);
-  return row;
-}
-
-function buildPlan(row: PlanRow): Plan {
-  const teachers = db.teachers.filter((t) => t.planId === row.id);
-  const sum = (pick: (t: PlanTeacher) => number) => teachers.reduce((acc, t) => acc + pick(t), 0);
-  const isDemo = row.id === "demo";
-  return {
-    ...row,
-    stats: {
-      teacherCount: teachers.length,
-      activeGroups: sum((t) => t.groups),
-      students: sum((t) => t.students),
-      hoursTaught: sum((t) => t.hoursTaught),
-      revenueMonthly: teachers.length * row.priceMonthly,
-      activeTrials: isDemo ? teachers.filter((t) => (t.trialDaysLeft ?? 0) > 0).length : 0,
-      conversionRate: isDemo ? db.history.demoConversionRate : null,
-    },
-  };
-}
-
-function demoAttention(teacher: PlanTeacher, row: PlanRow): AttentionItem {
-  const left = teacher.trialDaysLeft ?? 0;
-  return {
-    id: `demo-${teacher.id}`,
-    kind: "demo",
-    teacherId: teacher.id,
-    teacherName: teacher.name,
-    planId: "demo",
-    detail: `Demo, ${teacher.subject} — ${teacher.students} / ${row.limits.maxStudents ?? "∞"} student`,
-    status:
-      left <= 0
-        ? { label: "Muddati tugagan", tone: "danger" }
-        : { label: `${left} kun qoldi`, tone: left <= 2 ? "danger" : "demo" },
-  };
-}
-
-function limitAttention(teacher: PlanTeacher, row: PlanRow): AttentionItem | null {
-  const { maxGroups, maxStudents } = row.limits;
-  const base = { kind: "limit" as const, teacherId: teacher.id, teacherName: teacher.name, planId: row.id, id: `limit-${teacher.id}` };
-  if (maxGroups != null && teacher.groups >= maxGroups) {
-    return {
-      ...base,
-      detail: `${row.name}, ${teacher.subject} — ${teacher.groups} / ${maxGroups} guruh to‘lgan`,
-      status: { label: "100% limit", tone: "danger" },
-    };
-  }
-  if (maxStudents != null && teacher.students / maxStudents >= CAPACITY_WARNING) {
-    const pct = Math.round((teacher.students / maxStudents) * 100);
-    return {
-      ...base,
-      detail: `${row.name}, ${teacher.subject} — ${teacher.students} / ${maxStudents} student`,
-      status: { label: `${pct}% limit`, tone: pct >= 100 ? "danger" : "warning" },
-    };
-  }
-  return null;
-}
-
-function paymentAttention(teacher: PlanTeacher, row: PlanRow): AttentionItem | null {
-  if (!teacher.activeUntil) return null;
-  const left = daysUntil(teacher.activeUntil);
-  if (left > PAYMENT_WARNING_DAYS) return null;
-  return {
-    id: `payment-${teacher.id}`,
-    kind: "payment",
-    teacherId: teacher.id,
-    teacherName: teacher.name,
-    planId: row.id,
-    detail: `${row.name}, ${teacher.subject} — ${formatDate(teacher.activeUntil)} gacha`,
-    status:
-      left <= 0
-        ? { label: "To‘lov kechikdi", tone: "danger" }
-        : { label: `${left} kun qoldi`, tone: left <= 1 ? "danger" : "warning" },
-  };
-}
-
-function buildAttention(): AttentionItem[] {
-  const items: AttentionItem[] = [];
-  for (const teacher of db.teachers) {
-    const row = planRow(teacher.planId);
-    if (teacher.planId === "demo") {
-      items.push(demoAttention(teacher, row));
-      continue;
-    }
-    const limit = limitAttention(teacher, row);
-    if (limit) items.push(limit);
-    const payment = paymentAttention(teacher, row);
-    if (payment) items.push(payment);
-  }
-  return items;
-}
-
-function buildOverview(): PlansOverview {
-  const plans = db.plans.map(buildPlan);
-  const total = (pick: (p: Plan) => number) => plans.reduce((acc, p) => acc + pick(p), 0);
-  return {
-    plans,
-    summary: {
-      teachersTotal: total((p) => p.stats.teacherCount),
-      teachersDelta: db.history.teachersDelta,
-      activeStudents: total((p) => p.stats.students),
-      capacityUsage: db.history.capacityUsage,
-      hoursTotal: total((p) => p.stats.hoursTaught),
-      hoursPerMonth: db.history.hoursPerMonth,
-      mrr: total((p) => p.stats.revenueMonthly),
-      mrrDelta: db.history.mrrDelta,
-    },
-    attention: buildAttention(),
-    topTeachers: db.teachers
-      .filter((t) => t.planId !== "demo")
-      .sort((a, b) => b.hoursTaught - a.hoursTaught)
-      .slice(0, 3)
-      .map(({ id, name, planId, groups, students, hoursTaught }) => ({ id, name, planId, groups, students, hoursTaught })),
-  };
-}
-
+/**
+ * Plan & subscription endpoints. Backed by the in-memory mock in ./mock;
+ * swap each body for an HTTP call when the backend is ready.
+ */
 export const plansApi = {
   getOverview(scenario: DemoScenario, signal?: AbortSignal) {
     return mockRespond(scenario, buildOverview, { signal });
   },
 
   getTeachers(planId: PlanId, scenario: DemoScenario, signal?: AbortSignal) {
-    return mockRespond(scenario, () => db.teachers.filter((t) => t.planId === planId), {
+    return mockRespond(scenario, () => db.teachers.filter((t) => t.planId === planId).map(toPlanTeacher), {
       empty: () => [],
       signal,
     });
+  },
+
+  getTeacher(teacherId: string, scenario: DemoScenario, signal?: AbortSignal) {
+    return mockRespond(scenario, () => buildTeacherDetail(teacherId), { signal });
+  },
+
+  getNotifications(signal?: AbortSignal) {
+    return mockRespond("default", buildNotificationFeed, { signal });
+  },
+
+  async markNotificationsRead(ids: string[]) {
+    await mockDelay();
+    for (const id of ids) db.readNotifications.add(id);
   },
 
   async updatePlans(changes: Partial<Record<PlanId, PlanSettingsInput>>) {
@@ -158,37 +56,115 @@ export const plansApi = {
     }
   },
 
-  async moveTeacher(teacherId: string, planId: PaidPlanId) {
+  /** Starts a prepaid subscription today on the chosen plan. */
+  async moveTeacher({ teacherId, planId, months }: MoveTeacherInput) {
     await mockDelay();
-    const teacher = db.teachers.find((t) => t.id === teacherId);
-    if (!teacher) throw new Error("O‘qituvchi topilmadi.");
-    if (teacher.planId === "demo") {
-      teacher.trialDaysLeft = null;
-      teacher.activeUntil = isoInDays(30);
-    }
-    teacher.planId = planId;
-    return structuredClone(teacher);
+    const row = teacherRow(teacherId);
+    const today = todayIso();
+    Object.assign(row, {
+      planId,
+      activatedAt: today,
+      activeUntil: isoAddMonths(today, months),
+      monthsPaid: row.monthsPaid + months,
+      trialStartedAt: null,
+      trialEndsAt: null,
+    });
+    return { teacher: toPlanTeacher(row), plan: buildPlan(planRow(planId)) };
   },
 
-  async createDemo(input: NewDemoInput) {
+  async extendTrial(teacherId: string, days: number) {
     await mockDelay();
-    const teacher: PlanTeacher = {
+    const row = teacherRow(teacherId);
+    if (row.planId !== "demo" || !row.trialEndsAt) throw new Error("Faqat demo muddatini uzaytirish mumkin.");
+    // An expired trial restarts from today rather than from the past end date.
+    const from = row.trialEndsAt < todayIso() ? todayIso() : row.trialEndsAt;
+    row.trialEndsAt = isoAddDays(from, days);
+    return toPlanTeacher(row);
+  },
+
+  async createDemo({ name, phone, subject, trialDays, source }: NewDemoInput) {
+    await mockDelay();
+    const today = todayIso();
+    const row = {
       id: `t-new-${db.nextId++}`,
-      ...input,
-      planId: "demo",
-      groups: 0,
-      students: 0,
-      hoursTaught: 0,
-      lessonsCount: 0,
+      name,
+      phone,
+      subject,
+      planId: "demo" as const,
+      source,
+      joinedAt: today,
+      groups: [],
+      lessons: [],
+      activatedAt: null,
       activeUntil: null,
-      trialDaysLeft: planRow("demo").trialDays,
+      monthsPaid: 0,
+      trialStartedAt: today,
+      trialEndsAt: isoAddDays(today, trialDays),
     };
-    db.teachers.push(teacher);
-    return structuredClone(teacher);
+    db.teachers.push(row);
+    db.profiles[row.id] = {
+      username: name.split(" ")[0]!.toLowerCase(),
+      ratings: [0, 0, 0, 0, 0],
+      comments: [],
+      testCreation: false,
+      scheduledLessons: 0,
+      cancelledLessons: 0,
+    };
+    return toPlanTeacher(row);
+  },
+
+  getRoster(scenario: DemoScenario, signal?: AbortSignal) {
+    return mockRespond(scenario, buildRoster, { empty: () => ({ applicants: [], teachers: [] }), signal });
+  },
+
+  getTeacherStats(id: string, scenario: DemoScenario, signal?: AbortSignal) {
+    return mockRespond(scenario, () => buildTeacherStats(id), { signal });
+  },
+
+  /** Approves a sign-up: the teacher starts on the standard free demo. */
+  async approveApplicant(applicantId: string) {
+    await mockDelay();
+    const index = db.applicants.findIndex((a) => a.id === applicantId);
+    if (index < 0) throw new Error("Ariza topilmadi.");
+    const [applicant] = db.applicants.splice(index, 1);
+    const today = todayIso();
+    const id = `t-new-${db.nextId++}`;
+    db.teachers.push({
+      id,
+      name: applicant!.name,
+      phone: applicant!.phone,
+      subject: applicant!.subject,
+      planId: "demo",
+      source: "other",
+      joinedAt: today,
+      groups: [],
+      lessons: [],
+      activatedAt: null,
+      activeUntil: null,
+      monthsPaid: 0,
+      trialStartedAt: today,
+      trialEndsAt: isoAddDays(today, planRow("demo").trialDays ?? 7),
+    });
+    db.profiles[id] = {
+      username: applicant!.username,
+      ratings: [0, 0, 0, 0, 0],
+      comments: [],
+      testCreation: false,
+      scheduledLessons: 0,
+      cancelledLessons: 0,
+    };
+    return { name: applicant!.name, username: applicant!.username };
+  },
+
+  async setTestCreation(teacherId: string, enabled: boolean) {
+    await mockDelay();
+    const row = teacherRow(teacherId);
+    db.profiles[row.id] = { ...profileOf(row), testCreation: enabled };
+    return { name: row.name, enabled };
   },
 
   async sendPaymentReminder(teacherId: string) {
     await mockDelay();
-    if (!db.teachers.some((t) => t.id === teacherId)) throw new Error("O‘qituvchi topilmadi.");
+    teacherRow(teacherId);
   },
 };

@@ -32,8 +32,8 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-label text-ink">{label}</span>
+    <label className="flex flex-col gap-1">
+      <span className="text-caption text-ink">{label}</span>
       {children}
       {error ? (
         <span role="alert" className="text-caption text-danger-fg">{error}</span>

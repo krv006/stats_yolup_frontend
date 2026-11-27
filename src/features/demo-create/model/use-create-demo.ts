@@ -8,9 +8,10 @@ export function useCreateDemo() {
   const invalidate = useInvalidatePlans();
   return useMutation({
     mutationFn: (input: NewDemoInput) => plansApi.createDemo(input),
-    onSuccess: async (teacher) => {
+    onSuccess: async (teacher, input) => {
       await invalidate();
-      toast.success(`${teacher.name} uchun bepul demo ochildi`);
+      const sms = input.sendSms ? " va login SMS yuborildi" : "";
+      toast.success(`${teacher.name} uchun ${input.trialDays} kunlik bepul demo ochildi${sms}`);
     },
     onError: (error) => toast.error(error.message),
   });
