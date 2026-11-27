@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useComplaints } from "@/entities/complaint";
 import { useTeacherRoster } from "@/entities/plan";
 import { useSupportTickets } from "@/entities/support";
 import { NAV_ITEMS, SYSTEM_HEALTH_HREF, findNavItem } from "@/shared/config/navigation";
@@ -17,15 +18,21 @@ export function SidebarFallback() {
   return <SidebarView pathname={null} />;
 }
 
-/** Live counters: pending teacher sign-ups and open support tickets. */
+/** Live counters: pending sign-ups, open support tickets and new complaints. */
 const TEACHERS_HREF = "/oqituvchilar";
 const SUPPORT_HREF = "/murojaatlar";
+const COMPLAINTS_HREF = "/shikoyatlar";
 
 function SidebarView({ pathname }: { pathname: string | null }) {
   const pending = useTeacherRoster("default").data?.applicants.length;
   const openTickets = useSupportTickets("default").data?.filter((t) => t.status === "open").length;
-  const live: Record<string, number | undefined> = { [TEACHERS_HREF]: pending, [SUPPORT_HREF]: openTickets };
-  const countFor = (href: string, fallback?: number) => (href in live ? live[href] : fallback);
+  const newComplaints = useComplaints("default").data?.filter((c) => c.status === "new").length;
+  const live: Record<string, number | undefined> = {
+    [TEACHERS_HREF]: pending,
+    [SUPPORT_HREF]: openTickets,
+    [COMPLAINTS_HREF]: newComplaints,
+  };
+
 
   return (
     <aside className="sticky top-0 flex h-dvh w-(--layout-sidebar) shrink-0 flex-col border-r border-line bg-elevated px-4 pt-5 pb-5">
@@ -37,8 +44,9 @@ function SidebarView({ pathname }: { pathname: string | null }) {
       </Link>
 
       <nav aria-label="Asosiy menyu" className="mt-6 flex flex-col gap-1">
-        {NAV_ITEMS.map(({ href, label, icon: Icon, count }) => {
+        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname != null && findNavItem(pathname)?.href === href;
+          const count = live[href];
           return (
             <Link
               key={href}
@@ -53,12 +61,12 @@ function SidebarView({ pathname }: { pathname: string | null }) {
             >
               <Icon className={cn("size-4 shrink-0", active ? "text-brand" : "text-ink-tertiary")} strokeWidth={1.75} />
               <span className="min-w-0 flex-1 truncate">{label}</span>
-              {countFor(href, count) ? (
+              {count ? (
                 <span
                   className={cn("text-caption", active ? "font-semibold text-brand" : "text-ink-muted")}
-                  aria-label={`${countFor(href, count)} ta yangi`}
+                  aria-label={`${count} ta yangi`}
                 >
-                  {countFor(href, count)}
+                  {count}
                 </span>
               ) : null}
             </Link>

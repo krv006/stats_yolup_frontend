@@ -140,3 +140,9 @@ export function formatMessageStamp(isoDateTime: string): string {
   if (ago === 1) return `Kecha, ${timeOf(isoDateTime)}`;
   return formatShortDateTime(isoDateTime);
 }
+
+/** "2026-11-15T19:53" → "15.11.2026, 19:53" */
+export function formatDateTime(isoDateTime: string): string {
+  const [date = "", time = ""] = isoDateTime.split("T");
+  return `${formatDate(date)}, ${time.slice(0, 5)}`;
+}
