@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTeacherRoster } from "@/entities/plan";
 import { NAV_ITEMS, SYSTEM_HEALTH_HREF, findNavItem } from "@/shared/config/navigation";
 import { cn } from "@/shared/lib/cn";
 
@@ -15,7 +16,13 @@ export function SidebarFallback() {
   return <SidebarView pathname={null} />;
 }
 
+/** Pending teacher sign-ups drive the "O‘qituvchilar" counter. */
+const TEACHERS_HREF = "/oqituvchilar";
+
 function SidebarView({ pathname }: { pathname: string | null }) {
+  const pending = useTeacherRoster("default").data?.applicants.length;
+  const countFor = (href: string, fallback?: number) => (href === TEACHERS_HREF ? pending : fallback);
+
   return (
     <aside className="sticky top-0 flex h-dvh w-(--layout-sidebar) shrink-0 flex-col border-r border-line bg-elevated px-4 pt-5 pb-5">
       <Link href="/" className="flex items-center gap-2.5 px-1.5">
@@ -42,9 +49,12 @@ function SidebarView({ pathname }: { pathname: string | null }) {
             >
               <Icon className={cn("size-4 shrink-0", active ? "text-brand" : "text-ink-tertiary")} strokeWidth={1.75} />
               <span className="min-w-0 flex-1 truncate">{label}</span>
-              {count ? (
-                <span className="text-caption text-ink-muted" aria-label={`${count} ta yangi`}>
-                  {count}
+              {countFor(href, count) ? (
+                <span
+                  className={cn("text-caption", active ? "font-semibold text-brand" : "text-ink-muted")}
+                  aria-label={`${countFor(href, count)} ta yangi`}
+                >
+                  {countFor(href, count)}
                 </span>
               ) : null}
             </Link>

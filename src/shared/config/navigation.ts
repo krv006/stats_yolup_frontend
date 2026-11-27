@@ -42,7 +42,7 @@ export const NAV_ITEMS: NavItem[] = [
     ready: true,
     searchPlaceholder: "O‘qituvchi, guruh yoki telefon...",
   },
-  { href: "/oqituvchilar", label: "O‘qituvchilar", icon: GraduationCap, count: 2 },
+  { href: "/oqituvchilar", label: "O‘qituvchilar", icon: GraduationCap, ready: true },
   { href: "/murojaatlar", label: "Murojaatlar", icon: MessageSquare, count: 3 },
   { href: "/shikoyatlar", label: "Shikoyatlar", icon: Flag, count: 2 },
   { href: "/xabarlar", label: "Xabarlar", icon: Megaphone },

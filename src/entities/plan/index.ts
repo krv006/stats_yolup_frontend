@@ -1,5 +1,9 @@
 export type {
   AttentionItem,
+  RosterTeacher,
+  TeacherApplicant,
+  TeacherRoster,
+  TeacherStats,
   LeadSource,
   MoveTeacherInput,
   NotificationAction,
@@ -47,4 +51,6 @@ export {
   usePlanTeachers,
   usePlansOverview,
   useTeacherDetail,
+  useTeacherRoster,
+  useTeacherStats,
 } from "./api/queries";

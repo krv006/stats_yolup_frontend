@@ -11,6 +11,8 @@ export const planKeys = {
   teachers: (planId: PlanId, scenario: DemoScenario) => [...planKeys.all, "teachers", planId, scenario] as const,
   teacher: (teacherId: string, scenario: DemoScenario) => [...planKeys.all, "teacher", teacherId, scenario] as const,
   notifications: () => [...planKeys.all, "notifications"] as const,
+  roster: (scenario: DemoScenario) => [...planKeys.all, "roster", scenario] as const,
+  stats: (id: string, scenario: DemoScenario) => [...planKeys.all, "stats", id, scenario] as const,
 };
 
 export function usePlansOverview(scenario: DemoScenario) {
@@ -38,6 +40,22 @@ export function useNotifications() {
   return useQuery({
     queryKey: planKeys.notifications(),
     queryFn: ({ signal }) => plansApi.getNotifications(signal),
+  });
+}
+
+export function useTeacherRoster(scenario: DemoScenario) {
+  return useQuery({
+    queryKey: planKeys.roster(scenario),
+    queryFn: ({ signal }) => plansApi.getRoster(scenario, signal),
+  });
+}
+
+export function useTeacherStats(id: string | null, scenario: DemoScenario) {
+  return useQuery({
+    queryKey: planKeys.stats(id ?? "", scenario),
+    queryFn: ({ signal }) => plansApi.getTeacherStats(id!, scenario, signal),
+    enabled: id != null,
+    retry: false,
   });
 }
 

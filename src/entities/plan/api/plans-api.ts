@@ -7,8 +7,11 @@ import {
   buildNotificationFeed,
   buildOverview,
   buildPlan,
+  buildRoster,
   buildTeacherDetail,
+  buildTeacherStats,
   planRow,
+  profileOf,
   teacherRow,
   toPlanTeacher,
 } from "./mock/derive";
@@ -99,7 +102,65 @@ export const plansApi = {
       trialEndsAt: isoAddDays(today, trialDays),
     };
     db.teachers.push(row);
+    db.profiles[row.id] = {
+      username: name.split(" ")[0]!.toLowerCase(),
+      ratings: [0, 0, 0, 0, 0],
+      comments: [],
+      testCreation: false,
+      scheduledLessons: 0,
+      cancelledLessons: 0,
+    };
     return toPlanTeacher(row);
+  },
+
+  getRoster(scenario: DemoScenario, signal?: AbortSignal) {
+    return mockRespond(scenario, buildRoster, { empty: () => ({ applicants: [], teachers: [] }), signal });
+  },
+
+  getTeacherStats(id: string, scenario: DemoScenario, signal?: AbortSignal) {
+    return mockRespond(scenario, () => buildTeacherStats(id), { signal });
+  },
+
+  /** Approves a sign-up: the teacher starts on the standard free demo. */
+  async approveApplicant(applicantId: string) {
+    await mockDelay();
+    const index = db.applicants.findIndex((a) => a.id === applicantId);
+    if (index < 0) throw new Error("Ariza topilmadi.");
+    const [applicant] = db.applicants.splice(index, 1);
+    const today = todayIso();
+    const id = `t-new-${db.nextId++}`;
+    db.teachers.push({
+      id,
+      name: applicant!.name,
+      phone: applicant!.phone,
+      subject: applicant!.subject,
+      planId: "demo",
+      source: "other",
+      joinedAt: today,
+      groups: [],
+      lessons: [],
+      activatedAt: null,
+      activeUntil: null,
+      monthsPaid: 0,
+      trialStartedAt: today,
+      trialEndsAt: isoAddDays(today, planRow("demo").trialDays ?? 7),
+    });
+    db.profiles[id] = {
+      username: applicant!.username,
+      ratings: [0, 0, 0, 0, 0],
+      comments: [],
+      testCreation: false,
+      scheduledLessons: 0,
+      cancelledLessons: 0,
+    };
+    return { name: applicant!.name, username: applicant!.username };
+  },
+
+  async setTestCreation(teacherId: string, enabled: boolean) {
+    await mockDelay();
+    const row = teacherRow(teacherId);
+    db.profiles[row.id] = { ...profileOf(row), testCreation: enabled };
+    return { name: row.name, enabled };
   },
 
   async sendPaymentReminder(teacherId: string) {

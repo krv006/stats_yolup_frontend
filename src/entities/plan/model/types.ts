@@ -200,3 +200,50 @@ export interface MoveTeacherInput {
   /** Prepaid subscription length. */
   months: number;
 }
+
+/* ── Teacher roster (teachers page) ─────────────────────────── */
+
+export interface TeacherApplicant {
+  id: string;
+  name: string;
+  username: string;
+  subject: string;
+  appliedAt: string;
+}
+
+export interface RosterTeacher {
+  id: string;
+  name: string;
+  username: string;
+  subject: string;
+  planId: PlanId;
+  courses: number;
+  lessons: number;
+  ratingAvg: number | null;
+  ratingCount: number;
+  /** Can create tests with the AI test builder. */
+  testCreation: boolean;
+}
+
+export interface TeacherRoster {
+  applicants: TeacherApplicant[];
+  teachers: RosterTeacher[];
+}
+
+export interface TeacherStats {
+  id: string;
+  name: string;
+  username: string;
+  ratingAvg: number | null;
+  ratingCount: number;
+  /** Counts for 5★ … 1★. */
+  distribution: [number, number, number, number, number];
+  activeCourses: number;
+  students: number;
+  lessonsDone: number;
+  lessonsScheduled: number;
+  lessonsCancelled: number;
+  /** Share of lessons held as planned, %. */
+  reliability: number | null;
+  comments: Array<{ author: string; rating: number; text: string }>;
+}

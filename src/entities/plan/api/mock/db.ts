@@ -53,6 +53,28 @@ export interface TeacherRow {
   trialEndsAt: string | null;
 }
 
+/** Teacher-facing profile kept beside the subscription row. */
+export interface ProfileRow {
+  username: string;
+  /** Rating counts for 5★ … 1★. */
+  ratings: [number, number, number, number, number];
+  comments: Array<{ author: string; rating: number; text: string }>;
+  testCreation: boolean;
+  scheduledLessons: number;
+  cancelledLessons: number;
+}
+
+/** Teacher sign-ups waiting for an admin to approve them. */
+export interface ApplicantRow {
+  id: string;
+  name: string;
+  username: string;
+  subject: string;
+  phone: string;
+  /** Local ISO date-time. */
+  appliedAt: string;
+}
+
 const SCHEDULES = [
   "Du, Cho, Ju — 08:00",
   "Se, Pa, Sha — 14:00",
@@ -137,6 +159,9 @@ function demo(
 interface MockDb {
   plans: PlanRow[];
   teachers: TeacherRow[];
+  /** By teacher id; teachers without one get a generated default. */
+  profiles: Record<string, ProfileRow>;
+  applicants: ApplicantRow[];
   /** Notification ids the admin has already seen. */
   readNotifications: Set<string>;
   history: { teachersDelta: number; capacityUsage: number; hoursPerMonth: number; mrrDelta: number; demoConversionRate: number };
@@ -152,17 +177,9 @@ export const db: MockDb = {
   ],
 
   teachers: [
-    // Start — 7 groups, 128 students, 158 h
-    paid({ id: "t-dk", name: "Dilnoza Karimova", subject: "Matematika", phone: "+998901234567", planId: "start", source: "instagram" },
-      groupsFor("Matematika", 3, 46, 64, 48), { joined: -120, activated: -12, until: 18, months: 4 }),
-    paid({ id: "t-ry", name: "Rustam Yo‘ldoshev", subject: "Fizika", phone: "+998935551020", planId: "start", source: "referral" },
-      groupsFor("Fizika", 2, 64, 48, 36), { joined: -90, activated: -26, until: 4, months: 3 }),
-    paid({ id: "t-my", name: "Malika Yusupova", subject: "Ona tili", phone: "+998977003311", planId: "start", source: "telegram" },
-      groupsFor("Ona tili", 1, 10, 26, 20), { joined: -60, activated: -27, until: 3, months: 2 }),
-    paid({ id: "t-ji", name: "Javohir Ismoilov", subject: "Informatika", phone: "+998909871234", planId: "start", source: "other" },
-      groupsFor("Informatika", 1, 8, 20, 15), { joined: -40, activated: -4, until: 26, months: 1 }),
-
-    // Pro — 14 groups, 356 students, 436 h
+    // Featured on the teachers page (kept first so the roster reads like the design).
+    paid({ id: "t-ak", name: "Aziza Karimova", subject: "Ingliz tili", phone: "+998901110022", planId: "pro", source: "telegram" },
+      groupsFor("Ingliz tili", 6, 42, 60, 40), { joined: -130, activated: -10, until: 20, months: 4 }),
     paid({ id: "t-jr", name: "Jasur Rahimov", subject: "Ingliz tili (IELTS)", phone: "+998907774122", planId: "pro", source: "telegram" },
       [
         { name: "IELTS Intensive 7.0", schedule: "Du, Cho, Ju — 08:00", students: 38, hoursTaught: 64, lessonsCount: 32, lastLessonAt: day(-2) },
@@ -172,6 +189,24 @@ export const db: MockDb = {
         { name: "Grammar Bootcamp", schedule: "Sha — 16:00", students: 11, hoursTaught: 12, lessonsCount: 8, lastLessonAt: day(-1) },
       ],
       { joined: -95, activated: -3, until: 27, months: 3 }),
+    paid({ id: "t-hu", name: "Husanboy Urunov", subject: "Matematika", phone: "+998935550101", planId: "start", source: "instagram" },
+      groupsFor("Matematika", 2, 30, 27, 18), { joined: -75, activated: -8, until: 22, months: 2 }),
+    paid({ id: "t-sq", name: "Shohruhbek Qodirjonov", subject: "Dasturlash", phone: "+998977771212", planId: "business", source: "referral" },
+      groupsFor("Dasturlash", 4, 96, 104, 52), { joined: -160, activated: -15, until: 15, months: 5 }),
+    demo({ id: "t-mo", name: "Mukhammaddiyor Odiljonov", subject: "Fizika", phone: "+998901239876", source: "other" },
+      groupsFor("Fizika", 1, 9, 4, 3), trialLessons(3, 9, 1), { started: -1, ends: 6 }),
+
+    // Start
+    paid({ id: "t-dk", name: "Dilnoza Karimova", subject: "Matematika", phone: "+998901234567", planId: "start", source: "instagram" },
+      groupsFor("Matematika", 3, 46, 64, 48), { joined: -120, activated: -12, until: 18, months: 4 }),
+    paid({ id: "t-ry", name: "Rustam Yo‘ldoshev", subject: "Fizika", phone: "+998935551020", planId: "start", source: "referral" },
+      groupsFor("Fizika", 2, 64, 48, 36), { joined: -90, activated: -26, until: 4, months: 3 }),
+    paid({ id: "t-my", name: "Malika Yusupova", subject: "Ona tili", phone: "+998977003311", planId: "start", source: "telegram" },
+      groupsFor("Ona tili", 1, 10, 26, 20), { joined: -60, activated: -27, until: 3, months: 2 }),
+    paid({ id: "t-ji", name: "Javohir Ismoilov", subject: "Informatika", phone: "+998909871234", planId: "start", source: "other" },
+      groupsFor("Informatika", 1, 8, 20, 15), { joined: -40, activated: -4, until: 26, months: 1 }),
+
+    // Pro
     paid({ id: "t-be", name: "Bekzod Ergashev", subject: "Python dasturlash", phone: "+998998451076", planId: "pro", source: "instagram" },
       groupsFor("Python", 4, 93, 128, 64), { joined: -150, activated: -25, until: 5, months: 5 }),
     paid({ id: "t-nt", name: "Nigora Tursunova", subject: "Rus tili", phone: "+998913026615", planId: "pro", source: "referral" },
@@ -179,7 +214,7 @@ export const db: MockDb = {
     paid({ id: "t-sn", name: "Shahzoda Nematova", subject: "Kimyo", phone: "+998941189043", planId: "pro", source: "instagram" },
       groupsFor("Kimyo", 2, 55, 58, 38), { joined: -100, activated: -25, until: 35, months: 4 }),
 
-    // Business — 9 groups, 308 students, 384 h
+    // Business
     paid({ id: "t-aq", name: "Aziz Qodirov", subject: "Matematika (DTM)", phone: "+998901112233", planId: "business", source: "referral" },
       groupsFor("DTM Matematika", 4, 142, 210, 120), { joined: -200, activated: -20, until: 40, months: 7 }),
     paid({ id: "t-ku", name: "Kamola Usmonova", subject: "Ingliz tili", phone: "+998946662211", planId: "business", source: "telegram" },
@@ -187,7 +222,7 @@ export const db: MockDb = {
     paid({ id: "t-sa", name: "Sardor Aliyev", subject: "Biologiya", phone: "+998933334455", planId: "business", source: "instagram" },
       groupsFor("Biologiya", 2, 68, 62, 41), { joined: -60, activated: -29, until: 31, months: 2 }),
 
-    // Demo — 4 groups, 45 students, 14 h
+    // Demo
     demo({ id: "t-os", name: "Otabek Sobirov", subject: "Tarix (DTM)", phone: "+998909154430", source: "instagram" },
       [{ name: "Tarix (DTM tayyorlov)", schedule: "Du, Cho — 18:00", students: 14, hoursTaught: 4, lessonsCount: 3, lastLessonAt: day(-2) }],
       [
@@ -202,6 +237,30 @@ export const db: MockDb = {
       groupsFor("Biologiya", 1, 8, 1, 1), trialLessons(1, 8, 1), { started: -1, ends: 6 }),
     demo({ id: "t-un", name: "Ulug‘bek Nazarov", subject: "Fizika", phone: "+998936672011", source: "other" },
       groupsFor("Fizika", 1, 11, 6, 4), trialLessons(4, 11, 14), { started: -14, ends: -7 }),
+  ],
+
+  profiles: {
+    "t-ak": {
+      username: "teacher1",
+      ratings: [5, 1, 0, 0, 0],
+      comments: [
+        { author: "Toshmat Boltayev", rating: 5, text: "Zo‘r! Darslar juda tushunarli va jonli o‘tilmoqda." },
+        { author: "Malika Karimova", rating: 5, text: "Grammatika sodda misollar bilan tushuntiriladi." },
+        { author: "Javohir Aliyev", rating: 4, text: "Uyga vazifa tahlili juda foydali bo‘ldi." },
+      ],
+      testCreation: true,
+      scheduledLessons: 3,
+      cancelledLessons: 0,
+    },
+    "t-jr": { username: "jasur_r", ratings: [18, 5, 1, 0, 0], comments: [], testCreation: true, scheduledLessons: 6, cancelledLessons: 2 },
+    "t-hu": { username: "husanboy", ratings: [5, 4, 0, 0, 0], comments: [], testCreation: true, scheduledLessons: 2, cancelledLessons: 0 },
+    "t-sq": { username: "shohruh", ratings: [28, 3, 0, 0, 0], comments: [], testCreation: true, scheduledLessons: 4, cancelledLessons: 1 },
+    "t-mo": { username: "mukhammad", ratings: [0, 0, 0, 0, 0], comments: [], testCreation: false, scheduledLessons: 1, cancelledLessons: 0 },
+  },
+
+  applicants: [
+    { id: "a-dj", name: "Dostonbek Jurayev", username: "DJ2007", subject: "Matematika va Geometriya", phone: "+998901002007", appliedAt: `${day(0)}T11:43` },
+    { id: "a-sv", name: "Sardorbek Valiyev", username: "sardor_v", subject: "Fizika (DTM tayyorlov)", phone: "+998935002020", appliedAt: `${day(-1)}T18:20` },
   ],
 
   readNotifications: new Set(),

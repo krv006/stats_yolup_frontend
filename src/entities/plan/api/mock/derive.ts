@@ -19,8 +19,10 @@ import {
   type PlanTeacher,
   type TeacherActivity,
   type TeacherDetail,
+  type TeacherRoster,
+  type TeacherStats,
 } from "../../model/types";
-import { db, type PlanRow, type TeacherRow } from "./db";
+import { db, type PlanRow, type ProfileRow, type TeacherRow } from "./db";
 
 /** Payments due within this many days show up in "needs attention today". */
 const PAYMENT_ATTENTION_DAYS = 5;
@@ -350,5 +352,82 @@ export function buildOverview(): PlansOverview {
       .sort((a, b) => b.hoursTaught - a.hoursTaught)
       .slice(0, 3)
       .map(({ id, name, planId, groups, students, hoursTaught }) => ({ id, name, planId, groups, students, hoursTaught })),
+  };
+}
+
+/* ── Roster (teachers page) ─────────────────────────────────── */
+
+/** Profile for teachers without hand-written data: plausible, deterministic. */
+export function profileOf(row: TeacherRow): ProfileRow {
+  const existing = db.profiles[row.id];
+  if (existing) return existing;
+  const lessons = sum(row.groups, (g) => g.lessonsCount);
+  const count = Math.floor(lessons / 6);
+  return {
+    username: row.name.split(" ")[0]!.toLowerCase().replace(/[^a-z]/g, ""),
+    ratings: [Math.ceil(count * 0.7), Math.floor(count * 0.3), 0, 0, 0],
+    comments: [],
+    testCreation: row.planId !== "demo",
+    scheduledLessons: row.groups.length,
+    cancelledLessons: 0,
+  };
+}
+
+function ratingAvg(ratings: ProfileRow["ratings"]): number | null {
+  const count = ratings.reduce((a, b) => a + b, 0);
+  if (!count) return null;
+  const total = ratings.reduce((acc, n, i) => acc + n * (5 - i), 0);
+  return Math.round((total / count) * 10) / 10;
+}
+
+export function buildRoster(): TeacherRoster {
+  return {
+    applicants: db.applicants.map(({ id, name, username, subject, appliedAt }) => ({ id, name, username, subject, appliedAt })),
+    teachers: db.teachers.map((row) => {
+      const profile = profileOf(row);
+      return {
+        id: row.id,
+        name: row.name,
+        username: profile.username,
+        subject: row.subject,
+        planId: row.planId,
+        courses: row.groups.length,
+        lessons: sum(row.groups, (g) => g.lessonsCount),
+        ratingAvg: ratingAvg(profile.ratings),
+        ratingCount: profile.ratings.reduce((a, b) => a + b, 0),
+        testCreation: profile.testCreation,
+      };
+    }),
+  };
+}
+
+/** Stats for an approved teacher or a pending applicant (all zeros). */
+export function buildTeacherStats(id: string): TeacherStats {
+  const applicant = db.applicants.find((a) => a.id === id);
+  if (applicant) {
+    return {
+      id, name: applicant.name, username: applicant.username, ratingAvg: null, ratingCount: 0,
+      distribution: [0, 0, 0, 0, 0], activeCourses: 0, students: 0, lessonsDone: 0,
+      lessonsScheduled: 0, lessonsCancelled: 0, reliability: null, comments: [],
+    };
+  }
+  const row = teacherRow(id);
+  const profile = profileOf(row);
+  const done = sum(row.groups, (g) => g.lessonsCount);
+  const planned = done + profile.cancelledLessons;
+  return {
+    id,
+    name: row.name,
+    username: profile.username,
+    ratingAvg: ratingAvg(profile.ratings),
+    ratingCount: profile.ratings.reduce((a, b) => a + b, 0),
+    distribution: profile.ratings,
+    activeCourses: row.groups.length,
+    students: sum(row.groups, (g) => g.students),
+    lessonsDone: done,
+    lessonsScheduled: profile.scheduledLessons,
+    lessonsCancelled: profile.cancelledLessons,
+    reliability: planned ? Math.round((done / planned) * 1000) / 10 : null,
+    comments: profile.comments,
   };
 }
