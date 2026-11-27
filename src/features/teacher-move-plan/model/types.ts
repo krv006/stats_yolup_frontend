@@ -1,15 +1,11 @@
-import type { PaidPlanId, PlanId } from "@/entities/plan";
+import type { PaidPlanId } from "@/entities/plan";
 
+/** Opens the move dialog for a teacher with a pre-selected target plan. */
 export interface MoveRequest {
   teacherId: string;
   teacherName: string;
-  from: PlanId;
   suggested: PaidPlanId;
 }
 
-/** Upgrade path: Demo → Pro, Start → Pro, Pro → Business. */
-export function nextPlan(from: PlanId): PaidPlanId | null {
-  if (from === "demo" || from === "start") return "pro";
-  if (from === "pro") return "business";
-  return null;
-}
+/** Prepaid subscription lengths offered in the dialog. */
+export const SUBSCRIPTION_MONTHS = [1, 3, 6] as const;

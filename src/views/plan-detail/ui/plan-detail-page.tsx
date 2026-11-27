@@ -4,8 +4,15 @@ import { Plus, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { NewDemoDialog } from "@/features/demo-create";
-import { MoveTeacherDialog, nextPlan, type MoveRequest } from "@/features/teacher-move-plan";
-import { usePlanTeachers, usePlansOverview, type Plan, type PlanId, type PlanTeacher } from "@/entities/plan";
+import { MoveTeacherDialog, type MoveRequest } from "@/features/teacher-move-plan";
+import {
+  upgradeTarget,
+  usePlanTeachers,
+  usePlansOverview,
+  type Plan,
+  type PlanId,
+  type PlanTeacher,
+} from "@/entities/plan";
 import type { DemoScenario } from "@/shared/api/demo-scenario";
 import { cn } from "@/shared/lib/cn";
 import { Button, buttonVariants } from "@/shared/ui/button";
@@ -72,7 +79,7 @@ export function PlanDetailPage({ planId, scenario }: { planId: PlanId; scenario:
               plan={plan}
               teachers={teachers.data}
               onConvert={(t) =>
-                setMoving({ teacherId: t.id, teacherName: t.name, from: t.planId, suggested: nextPlan(t.planId) ?? "pro" })
+                setMoving({ teacherId: t.id, teacherName: t.name, suggested: upgradeTarget(t.planId) ?? "business" })
               }
             />
           )}

@@ -41,6 +41,43 @@ export function isoInDays(days: number): string {
   return toIsoDate(date);
 }
 
+/** `iso` shifted by whole days. */
+export function isoAddDays(iso: string, days: number): string {
+  const date = parseIsoDate(iso);
+  date.setDate(date.getDate() + days);
+  return toIsoDate(date);
+}
+
+/** `iso` shifted by calendar months, clamped to the month's last day (31.01 + 1 → 28.02). */
+export function isoAddMonths(iso: string, months: number): string {
+  const date = parseIsoDate(iso);
+  const day = date.getDate();
+  date.setDate(1);
+  date.setMonth(date.getMonth() + months);
+  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  date.setDate(Math.min(day, lastDay));
+  return toIsoDate(date);
+}
+
+/** Today as a local ISO date. */
+export function todayIso(): string {
+  return toIsoDate(new Date());
+}
+
+/** "2026-11-21" → "21.11" */
+export function formatDayMonth(iso: string): string {
+  const date = parseIsoDate(iso);
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}`;
+}
+
+/** 0 → "Bugun", 1 → "Kecha", n → "n kun oldin" */
+export function formatDaysAgo(iso: string): string {
+  const ago = -daysUntil(iso);
+  if (ago <= 0) return "Bugun";
+  if (ago === 1) return "Kecha";
+  return `${ago} kun oldin`;
+}
+
 /** Whole calendar days from today to `iso` (negative when past). */
 export function daysUntil(iso: string): number {
   const today = parseIsoDate(toIsoDate(new Date()));

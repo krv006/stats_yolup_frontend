@@ -9,6 +9,8 @@ export const planKeys = {
   all: ["plans"] as const,
   overview: (scenario: DemoScenario) => [...planKeys.all, "overview", scenario] as const,
   teachers: (planId: PlanId, scenario: DemoScenario) => [...planKeys.all, "teachers", planId, scenario] as const,
+  teacher: (teacherId: string, scenario: DemoScenario) => [...planKeys.all, "teacher", teacherId, scenario] as const,
+  notifications: () => [...planKeys.all, "notifications"] as const,
 };
 
 export function usePlansOverview(scenario: DemoScenario) {
@@ -22,6 +24,20 @@ export function usePlanTeachers(planId: PlanId, scenario: DemoScenario) {
   return useQuery({
     queryKey: planKeys.teachers(planId, scenario),
     queryFn: ({ signal }) => plansApi.getTeachers(planId, scenario, signal),
+  });
+}
+
+export function useTeacherDetail(teacherId: string, scenario: DemoScenario) {
+  return useQuery({
+    queryKey: planKeys.teacher(teacherId, scenario),
+    queryFn: ({ signal }) => plansApi.getTeacher(teacherId, scenario, signal),
+  });
+}
+
+export function useNotifications() {
+  return useQuery({
+    queryKey: planKeys.notifications(),
+    queryFn: ({ signal }) => plansApi.getNotifications(signal),
   });
 }
 

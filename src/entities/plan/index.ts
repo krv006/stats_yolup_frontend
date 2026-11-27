@@ -1,5 +1,17 @@
 export type {
   AttentionItem,
+  LeadSource,
+  MoveTeacherInput,
+  NotificationAction,
+  NotificationFeed,
+  NotificationKind,
+  PlanNotification,
+  TeacherActivity,
+  TeacherDetail,
+  TeacherGroup,
+  TeacherLesson,
+  TeacherSubscription,
+  TeacherTrial,
   AttentionKind,
   AttentionTone,
   NewDemoInput,
@@ -16,11 +28,23 @@ export type {
 export { PAID_PLANS, PLAN_ORDER } from "./model/types";
 export {
   CAPACITY_WARN_PCT,
+  LEAD_SOURCE_DETAIL,
+  LEAD_SOURCE_LABEL,
+  LIMIT_WARNING_SHARE,
+  PAYMENT_REMINDER_DAYS,
   PLAN_DOT,
   PLAN_TITLE,
   capacityPct,
   limitLabels,
   priceLabel,
+  upgradeTarget,
 } from "./lib/plan-meta";
 export { plansApi } from "./api/plans-api";
-export { planKeys, useInvalidatePlans, usePlanTeachers, usePlansOverview } from "./api/queries";
+export {
+  planKeys,
+  useInvalidatePlans,
+  useNotifications,
+  usePlanTeachers,
+  usePlansOverview,
+  useTeacherDetail,
+} from "./api/queries";

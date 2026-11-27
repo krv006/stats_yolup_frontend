@@ -47,8 +47,97 @@ export interface PlanTeacher {
   lessonsCount: number;
   /** Paid plans: ISO date the subscription is paid until. */
   activeUntil: string | null;
+  /** Demo: ISO date the trial ends. */
+  trialEndsAt: string | null;
   /** Demo: days left in the trial; ≤ 0 means expired. */
   trialDaysLeft: number | null;
+}
+
+export type LeadSource = "instagram" | "telegram" | "referral" | "other";
+
+export interface TeacherGroup {
+  id: string;
+  name: string;
+  /** Human schedule, e.g. "Du, Cho — 18:00". */
+  schedule: string;
+  students: number;
+  /** Seats per group; null when the plan does not cap group size. */
+  capacity: number | null;
+  hoursTaught: number;
+  lessonsCount: number;
+  lastLessonAt: string | null;
+}
+
+export interface TeacherLesson {
+  id: string;
+  title: string;
+  /** Local ISO date-time, e.g. "2026-11-21T18:00". */
+  startsAt: string;
+  durationMinutes: number;
+  attended: number;
+  enrolled: number;
+}
+
+export interface TeacherTrial {
+  startedAt: string;
+  endsAt: string;
+  totalDays: number;
+  usedDays: number;
+  daysLeft: number;
+}
+
+export interface TeacherSubscription {
+  activatedAt: string;
+  paidUntil: string;
+  daysLeft: number;
+  /** Lifetime paid months and amount (USD). */
+  monthsPaid: number;
+  totalPaid: number;
+}
+
+export type TeacherActivity = "high" | "medium" | "low";
+
+export interface TeacherDetail {
+  teacher: PlanTeacher;
+  plan: Plan;
+  joinedAt: string;
+  source: LeadSource;
+  groups: TeacherGroup[];
+  /** Demo only: lessons taught during the trial, newest first. */
+  recentLessons: TeacherLesson[];
+  trial: TeacherTrial | null;
+  subscription: TeacherSubscription | null;
+  /** Demo only: cheapest paid plan that fits the teacher's current load. */
+  recommendedPlanId: PaidPlanId | null;
+  /** Demo only: from average lesson attendance. */
+  activity: TeacherActivity | null;
+}
+
+export type NotificationKind = "payment" | "demo" | "limit";
+export type NotificationAction = "extend" | "convert" | "upgrade";
+
+export interface PlanNotification {
+  /** Stable per event: a new reminder for the same teacher gets a new id. */
+  id: string;
+  kind: NotificationKind;
+  /** Demo trial already over (shown muted). */
+  expired: boolean;
+  teacherId: string;
+  teacherName: string;
+  planId: PlanId;
+  title: string;
+  body: string;
+  status: { label: string; tone: AttentionTone | null };
+  createdAt: string;
+  action: NotificationAction;
+  /** For "upgrade" / "convert": the suggested target plan. */
+  targetPlanId: PaidPlanId | null;
+  read: boolean;
+}
+
+export interface NotificationFeed {
+  items: PlanNotification[];
+  unreadCount: number;
 }
 
 export type AttentionKind = "demo" | "limit" | "payment";
@@ -99,4 +188,15 @@ export interface NewDemoInput {
   name: string;
   phone: string;
   subject: string;
+  trialDays: number;
+  source: LeadSource;
+  /** Send login credentials to the teacher by SMS. */
+  sendSms: boolean;
+}
+
+export interface MoveTeacherInput {
+  teacherId: string;
+  planId: PaidPlanId;
+  /** Prepaid subscription length. */
+  months: number;
 }

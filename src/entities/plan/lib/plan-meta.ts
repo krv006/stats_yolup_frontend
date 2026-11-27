@@ -1,5 +1,5 @@
 import { formatUsd } from "@/shared/lib/format";
-import type { Plan, PlanId, PlanLimits } from "../model/types";
+import type { LeadSource, PaidPlanId, Plan, PlanId, PlanLimits } from "../model/types";
 
 /** Fixed identity per plan — never re-assigned by rank or filter. */
 export const PLAN_DOT: Record<PlanId, string> = {
@@ -45,3 +45,33 @@ export function capacityPct(used: number, perTeacher: number | null, teachers = 
 
 /** ≥85% of a limit is shown in the warning colour. */
 export const CAPACITY_WARN_PCT = 85;
+
+/** Upgrade path: Demo → Pro, Start → Pro, Pro → Business; Business is the top. */
+export function upgradeTarget(from: PlanId): PaidPlanId | null {
+  if (from === "demo" || from === "start") return "pro";
+  if (from === "pro") return "business";
+  return null;
+}
+
+/** Short labels for pickers. */
+export const LEAD_SOURCE_LABEL: Record<LeadSource, string> = {
+  instagram: "Instagram",
+  telegram: "Telegram",
+  referral: "Tavsiya orqali",
+  other: "Boshqa",
+};
+
+/** Longer labels for detail views. */
+export const LEAD_SOURCE_DETAIL: Record<LeadSource, string> = {
+  instagram: "Instagram reklama",
+  telegram: "Telegram",
+  referral: "Tavsiya orqali",
+  other: "Boshqa",
+};
+
+/** Payment reminders go out this many days before the paid period ends. */
+export const PAYMENT_REMINDER_DAYS = [7, 3] as const;
+/** Trial reminders go out this many days before the demo ends. */
+export const TRIAL_REMINDER_DAYS = [5, 2] as const;
+/** Share of a limit that triggers a warning. */
+export const LIMIT_WARNING_SHARE = 0.9;
