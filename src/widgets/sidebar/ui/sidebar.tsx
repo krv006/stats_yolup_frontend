@@ -5,9 +5,17 @@ import { usePathname } from "next/navigation";
 import { NAV_ITEMS, findNavItem } from "@/shared/config/navigation";
 import { cn } from "@/shared/lib/cn";
 
+/** Reads the URL; render inside <Suspense> (see SidebarFallback). */
 export function Sidebar() {
-  const pathname = usePathname();
+  return <SidebarView pathname={usePathname()} />;
+}
 
+/** Same sidebar without an active item, for the prerendered shell. */
+export function SidebarFallback() {
+  return <SidebarView pathname={null} />;
+}
+
+function SidebarView({ pathname }: { pathname: string | null }) {
   return (
     <aside className="sticky top-0 flex h-dvh w-(--layout-sidebar) shrink-0 flex-col border-r border-line bg-elevated px-4 pt-5 pb-5">
       <Link href="/" className="flex items-center gap-2.5 px-1.5">
@@ -19,7 +27,7 @@ export function Sidebar() {
 
       <nav aria-label="Asosiy menyu" className="mt-6 flex flex-col gap-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon, count }) => {
-          const active = findNavItem(pathname)?.href === href;
+          const active = pathname != null && findNavItem(pathname)?.href === href;
           return (
             <Link
               key={href}
