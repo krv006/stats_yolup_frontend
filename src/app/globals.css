@@ -33,6 +33,7 @@
   --green-500: #12b76a;
   --green-700: #027a48;
 
+  --orange-50: #fffaeb;
   --orange-500: #f79009;
   --orange-700: #b54708;
 
@@ -72,6 +73,7 @@
   --status-success: var(--green-500);
   --status-success-fg: var(--green-700);
   --status-warning: var(--orange-500);
+  --status-warning-bg: var(--orange-50);
   --status-warning-fg: var(--orange-700);
   --status-danger: var(--red-500);
   --status-danger-bg: var(--red-50);
@@ -91,6 +93,8 @@
   --plan-demo: var(--teal-600);
 
   --scrim: rgb(24 29 39 / 0.43);
+  /* Lighter dim behind non-modal panels (notifications). */
+  --scrim-light: rgb(24 29 39 / 0.16);
 
   --shadow-xs: 0 1px 2px rgb(16 24 40 / 0.05);
   --shadow-sm: 0 1px 3px rgb(16 24 40 / 0.08);
@@ -151,6 +155,7 @@
   --color-track: var(--bg-track);
   --color-inverse: var(--bg-inverse);
   --color-scrim: var(--scrim);
+  --color-scrim-light: var(--scrim-light);
 
   /* text */
   --color-ink-strong: var(--text-strong);
@@ -176,6 +181,7 @@
   --color-success: var(--status-success);
   --color-success-fg: var(--status-success-fg);
   --color-warning: var(--status-warning);
+  --color-warning-bg: var(--status-warning-bg);
   --color-warning-fg: var(--status-warning-fg);
   --color-star: var(--rating-star);
 

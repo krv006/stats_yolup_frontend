@@ -47,7 +47,7 @@ export function Toaster() {
     <div
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-6 z-60 flex flex-col items-center gap-2"
+      className="pointer-events-none fixed right-0 bottom-6 left-0 z-60 flex flex-col items-center gap-2 lg:left-(--layout-sidebar)"
     >
       {toasts.map((t) => (
         <button

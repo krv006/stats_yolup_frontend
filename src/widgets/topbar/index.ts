@@ -1,1 +1,1 @@
-export { Topbar } from "./ui/topbar";
+export { Topbar, TopbarFallback } from "./ui/topbar";
