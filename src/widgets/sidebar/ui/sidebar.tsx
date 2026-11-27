@@ -1,11 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useComplaints } from "@/entities/complaint";
 import { useTeacherRoster } from "@/entities/plan";
 import { useSupportTickets } from "@/entities/support";
 import { NAV_ITEMS, SYSTEM_HEALTH_HREF, findNavItem } from "@/shared/config/navigation";
+import logo from "@/shared/assets/y-logo.svg";
 import { cn } from "@/shared/lib/cn";
 
 /** Reads the URL; render inside <Suspense> (see SidebarFallback). */
@@ -37,9 +39,7 @@ function SidebarView({ pathname }: { pathname: string | null }) {
   return (
     <aside className="sticky top-0 flex h-dvh w-(--layout-sidebar) shrink-0 flex-col border-r border-line bg-elevated px-4 pt-5 pb-5">
       <Link href="/" className="flex items-center gap-2.5 px-1.5">
-        <span className="grid size-7 place-items-center rounded-md bg-action text-label font-semibold text-ink-inverse">
-          Y
-        </span>
+        <Image src={logo} alt="" width={28} height={28} priority className="size-7" />
         <span className="text-title text-ink-strong">YolUp Admin</span>
       </Link>
 
